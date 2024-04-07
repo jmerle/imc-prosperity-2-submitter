@@ -5,7 +5,6 @@ import webbrowser
 from collections import defaultdict
 from datetime import datetime, timezone
 from functools import partial
-from getpass import getpass
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from requests_toolbelt import MultipartEncoder
@@ -25,7 +24,7 @@ From there, click on Local Storage in the sidebar and select the website that ap
 Your token is stored in your system's credentials store for convenience.
     """.strip())
 
-    token = getpass("Prosperity ID token: ")
+    token = input("Prosperity ID token: ")
     keyring.set_password(KEYRING_SERVICE, KEYRING_USERNAME, token)
 
 def request_with_token(*args, **kwargs) -> requests.Response:
