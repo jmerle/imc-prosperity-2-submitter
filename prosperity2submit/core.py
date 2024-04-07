@@ -46,7 +46,7 @@ def request_with_token(method: str, url: str, form_data: Optional[dict[str, Any]
         refresh_token()
         return request_with_token(method, url, form_data)
 
-    if response.status_code in [500, 504]:
+    if 500 <= response.status_code < 600:
         print(f"Received unexpected HTTP {response.status_code} response from the Prosperity API, retrying request")
         return request_with_token(method, url, form_data)
 
