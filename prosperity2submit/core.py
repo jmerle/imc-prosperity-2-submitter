@@ -3,7 +3,6 @@ import requests
 import time
 import webbrowser
 from collections import defaultdict
-from datetime import datetime, timezone
 from functools import partial
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
