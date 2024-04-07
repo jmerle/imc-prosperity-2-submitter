@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/jmerle/imc-prosperity-2-submitter/workflows/Build/badge.svg)](https://github.com/jmerle/imc-prosperity-2-submitter/actions/workflows/build.yml)
 [![PyPI Version](https://img.shields.io/pypi/v/prosperity2submit)](https://pypi.org/project/prosperity2submit/)
 
-This repository contains a command-line submitter for [IMC Prosperity 2](https://prosperity.imc.com/) algorithms. It uploads the algorithm, monitors its progress, downloads the logs, logs the final profit / loss, and opens the result in my [IMC Prosperity 2 Visualizer](https://github.com/jmerle/imc-prosperity-2-visualizer) (optional), all in one command.
+This repository contains a command-line submitter for [IMC Prosperity 2](https://prosperity.imc.com/) algorithms. It uploads the algorithm, monitors its progress, downloads the logs, logs the final profit / loss, and opens the submission in my [IMC Prosperity 2 Visualizer](https://github.com/jmerle/imc-prosperity-2-visualizer) (optional), all in one command.
 
 ## Usage
 
