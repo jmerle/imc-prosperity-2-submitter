@@ -27,25 +27,29 @@ Your token is stored in your system's credentials store for convenience.
     token = input("Prosperity ID token: ")
     keyring.set_password(KEYRING_SERVICE, KEYRING_USERNAME, token)
 
-def request_with_token(*args, **kwargs) -> requests.Response:
+def request_with_token(method: str, url: str, form_data: Optional[dict[str, Any]] = None) -> requests.Response:
     token = keyring.get_password(KEYRING_SERVICE, KEYRING_USERNAME)
     if token is None:
         refresh_token()
-        return request_with_token(*args, **kwargs)
+        return request_with_token(method, url, form_data)
 
-    headers = kwargs.get("headers", {})
-    headers["Authorization"] = f"Bearer {token}"
-    kwargs["headers"] = headers
+    data = None
+    headers = {"Authorization": f"Bearer {token}"}
 
-    response = requests.request(*args, **kwargs)
+    if form_data is not None:
+        encoder = MultipartEncoder(form_data)
+        data = encoder
+        headers["content-type"] = encoder.content_type
+
+    response = requests.request(method, url, data=data, headers=headers)
 
     if response.status_code == 403:
         refresh_token()
-        return request_with_token(*args, **kwargs)
+        return request_with_token(method, url, form_data)
 
-    if response.status_code == 500:
-        print("Received HTTP 500 from Prosperity API, retrying request")
-        return request_with_token(*args, **kwargs)
+    if response.status_code in [500, 504]:
+        print(f"Received unexpected HTTP {response.status_code} response from the Prosperity API, retrying request")
+        return request_with_token(method, url, form_data)
 
     response.raise_for_status()
     return response
@@ -57,37 +61,24 @@ def format_path(path: Path) -> str:
     else:
         return str(path)
 
+def get_current_round() -> str:
+    print("Retrieving current round")
+    rounds = request_with_token("GET", f"{API_BASE_URL}/game/rounds").json()
+
+    open_round = next((r for r in rounds if r["isOpen"]), None)
+    if open_round is None:
+        raise ValueError("No round is currently accepting submissions")
+
+    return open_round["id"]
+
 def submit_algorithm(algorithm_file: Path) -> None:
     print(f"Submitting {format_path(algorithm_file)}")
 
-    with algorithm_file.open("rb") as file:
-        form = MultipartEncoder({"file": (algorithm_file.name, file, "text/x-python")})
-
-        request_with_token(
-            "POST",
-            f"{API_BASE_URL}/submission/algo",
-            data=form,
-            headers={"content-type": form.content_type},
-        )
-
-def get_current_round() -> str:
-    round_open_timestamps = [
-        "2024-02-12T09:00:00.000",
-        "2024-04-08T09:00:00.000",
-        "2024-04-11T09:00:00.000",
-        "2024-04-14T09:00:00.000",
-        "2024-04-17T09:00:00.000",
-        "2024-04-20T09:00:00.000",
-    ]
-
-    now = datetime.now(timezone.utc)
-
-    for i, timestamp in enumerate(round_open_timestamps):
-        parsed = datetime.fromisoformat(timestamp).replace(tzinfo=timezone.utc)
-        if now >= parsed:
-            return f"ROUND{i}"
-
-    raise ValueError("Could not determine current round")
+    request_with_token(
+        "POST",
+        f"{API_BASE_URL}/submission/algo",
+        {"file": (algorithm_file.name, algorithm_file.read_bytes(), "text/x-python")},
+    )
 
 def list_algorithms(round: str) -> list[dict[str, Any]]:
     return request_with_token("GET", f"{API_BASE_URL}/submission/algo/{round}").json()
@@ -100,10 +91,8 @@ def get_submission_status(data: dict[str, Any]) -> str:
 
     return status
 
-def monitor_status(algorithm_file: Path) -> dict[str, Any]:
+def monitor_status(round: str, algorithm_file: Path) -> dict[str, Any]:
     print("Monitoring submission status")
-
-    round = get_current_round()
 
     algorithms = list_algorithms(round)
     data = next(a for a in algorithms if a["fileName"] == algorithm_file.name)
@@ -172,8 +161,10 @@ def open_in_visualizer(output_file: Path) -> None:
     http_server.handle_request()
 
 def submit(algorithm_file: Path, output_file: Optional[Path], open_visualizer: bool) -> None:
+    round = get_current_round()
+
     submit_algorithm(algorithm_file)
-    data = monitor_status(algorithm_file)
+    data = monitor_status(round, algorithm_file)
 
     if output_file is not None:
         download_logs(data, output_file)
