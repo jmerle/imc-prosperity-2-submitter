@@ -43,6 +43,10 @@ def request_with_token(*args, **kwargs) -> requests.Response:
         refresh_token()
         return request_with_token(*args, **kwargs)
 
+    if response.status_code == 500:
+        print("Received HTTP 500 from Prosperity API, retrying request")
+        return request_with_token(*args, **kwargs)
+
     response.raise_for_status()
     return response
 
