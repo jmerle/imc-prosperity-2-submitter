@@ -72,7 +72,6 @@ def get_current_round() -> str:
 
 def submit_algorithm(algorithm_file: Path) -> None:
     print(f"Submitting {format_path(algorithm_file)}")
-
     request_with_token(
         "POST",
         f"{API_BASE_URL}/submission/algo",
