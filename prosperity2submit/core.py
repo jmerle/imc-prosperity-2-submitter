@@ -1,4 +1,5 @@
 import keyring
+import readline
 import requests
 import time
 import webbrowser
