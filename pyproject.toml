@@ -25,7 +25,7 @@ dependencies = [
 ]
 
 [project.scripts]
-prosperity2submit = "prosperity2submit.main:main"
+prosperity2submit = "prosperity2submit.__main__:main"
 
 [project.urls]
 Repository = "https://github.com/jmerle/imc-prosperity-2-submitter"

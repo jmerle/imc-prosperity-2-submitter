@@ -37,3 +37,6 @@ def main() -> int:
         output_file = Path.cwd() / "submissions" / f"{timestamp}.log"
 
     submit(algorithm_file, output_file, args.vis)
+
+if __name__ == "__main__":
+    main()
