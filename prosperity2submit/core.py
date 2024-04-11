@@ -1,6 +1,9 @@
 import keyring
+# This import needs to exist to prevent a 1024-character pasting limit on macOS
+# See https://stackoverflow.com/a/53871077
 import readline
 import requests
+import sys
 import time
 import webbrowser
 from collections import defaultdict
@@ -27,7 +30,7 @@ Your token is stored in your system's credentials store for convenience.
     token = input("Prosperity ID token: ")
     keyring.set_password(KEYRING_SERVICE, KEYRING_USERNAME, token)
 
-def request_with_token(method: str, url: str, form_data: Optional[dict[str, Any]] = None) -> requests.Response:
+def request_with_token(method: str, url: str, form_data: Optional[dict[str, Any]] = None, attempt: int = 0) -> requests.Response:
     token = keyring.get_password(KEYRING_SERVICE, KEYRING_USERNAME)
     if token is None:
         refresh_token()
@@ -47,9 +50,14 @@ def request_with_token(method: str, url: str, form_data: Optional[dict[str, Any]
         refresh_token()
         return request_with_token(method, url, form_data)
 
+    if response.status_code == 503:
+        print("The Prosperity website is currently in maintenance mode, please try again later")
+        sys.exit(1)
+
     if 500 <= response.status_code < 600:
-        print(f"Received unexpected HTTP {response.status_code} response from the Prosperity API, retrying request")
-        return request_with_token(method, url, form_data)
+        print(f"Received unexpected HTTP {response.status_code} response from the Prosperity API, retrying request after 5 seconds (attempt {attempt + 1})")
+        time.sleep(5)
+        return request_with_token(method, url, form_data, attempt + 1)
 
     response.raise_for_status()
     return response
