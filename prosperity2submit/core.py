@@ -1,7 +1,4 @@
 import keyring
-# This import needs to exist to prevent a 1024-character pasting limit on macOS
-# See https://stackoverflow.com/a/53871077
-import readline
 import requests
 import sys
 import time
@@ -12,6 +9,13 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from requests_toolbelt import MultipartEncoder
 from typing import Any, Optional
+
+try:
+    # This import needs to happen to prevent a 1024-character pasting limit on macOS
+    # See https://stackoverflow.com/a/53871077
+    import readline
+except ImportError:
+    pass
 
 KEYRING_SERVICE = "prosperity2submit"
 KEYRING_USERNAME = "prosperity-id-token"
