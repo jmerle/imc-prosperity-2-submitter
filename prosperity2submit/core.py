@@ -163,7 +163,7 @@ class HTTPRequestHandler(SimpleHTTPRequestHandler):
     def log_message(self, format: str, *args: Any) -> None:
         return
 
-def open_visualizer(output_file: Path) -> None:
+def open_in_visualizer(output_file: Path) -> None:
     http_handler = partial(HTTPRequestHandler, directory=output_file.parent)
     http_server = HTTPServer(("localhost", 0), http_handler)
     http_server.timeout = 5
