@@ -163,19 +163,18 @@ class HTTPRequestHandler(SimpleHTTPRequestHandler):
     def log_message(self, format: str, *args: Any) -> None:
         return
 
-def open_in_visualizer(output_file: Path) -> None:
+def open_in_visualizer(output_file: Path, no_requests: int) -> None:
     http_handler = partial(HTTPRequestHandler, directory=output_file.parent)
     http_server = HTTPServer(("localhost", 0), http_handler)
-    http_server.timeout = 5
 
     webbrowser.open(f"https://jmerle.github.io/imc-prosperity-2-visualizer/?open=http://localhost:{http_server.server_port}/{output_file.name}")
 
     # Chrome makes 2 requests: 1 OPTIONS request to check for CORS headers and 1 GET request to get the data
-    # Some users reported their browser only makes 1 request, in that case the second call is terminated after `http_server.timeout` seconds
-    http_server.handle_request()
-    http_server.handle_request()
+    # Some users reported their browser only makes 1 request, which is covered by the --vis-requests option
+    for _ in range(no_requests):
+        http_server.handle_request()
 
-def submit(algorithm_file: Path, output_file: Optional[Path], open_visualizer: bool) -> None:
+def submit(algorithm_file: Path, output_file: Optional[Path], open_visualizer: bool, visualizer_requests: int) -> None:
     round = get_current_round()
 
     submit_algorithm(algorithm_file)
@@ -191,4 +190,4 @@ def submit(algorithm_file: Path, output_file: Optional[Path], open_visualizer: b
         if data["status"] == "ERROR":
             print("Submission errored, not opening visualizer")
         else:
-            open_in_visualizer(output_file)
+            open_in_visualizer(output_file, visualizer_requests)

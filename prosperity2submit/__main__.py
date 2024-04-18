@@ -11,6 +11,7 @@ def main() -> int:
     parser.add_argument("--out", type=str, help="path to save submission logs to (defaults to submissions/<timestamp>.log)")
     parser.add_argument("--no-logs", action="store_true", help="don't download logs when done")
     parser.add_argument("--vis", action="store_true", help="open submission in visualizer when done")
+    parser.add_argument("--vis-requests", type=int, default=2, help="number of requests the visualizer is expected to make to the submitter's HTTP server when using --vis")
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {metadata.version(__package__)}")
 
     args = parser.parse_args()
@@ -36,7 +37,7 @@ def main() -> int:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         output_file = Path.cwd() / "submissions" / f"{timestamp}.log"
 
-    submit(algorithm_file, output_file, args.vis)
+    submit(algorithm_file, output_file, args.vis, args.vis_requests)
 
 if __name__ == "__main__":
     main()
